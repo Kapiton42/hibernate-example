@@ -19,8 +19,8 @@ public class UserService {
     this.userDAO = requireNonNull(userDAO);
   }
 
-  public void save(final User user) {
-    inTransaction(() -> userDAO.save(user));
+  public User save(final NewUser newUser) {
+    return inTransaction(() -> userDAO.save(newUser));
   }
 
   public Optional<User> get(final int userId) {
@@ -41,8 +41,9 @@ public class UserService {
       if (!optionalUser.isPresent()) {
         throw new IllegalArgumentException("there is no user with id " + userId);
       }
-      optionalUser.get().setFirstName(firstName);
-      // there is no need to merge: hibernate detects changes and updates on commit
+      final User user = optionalUser.get().withFirstName(firstName);
+      sessionFactory.getCurrentSession().merge(user);
+      // need to merge because hibernate does not know anything about new user
       // there is possibility of deadlock if two transactions get one user and then try to update it
       // to avoid it we can 'select for update' in userDAO.get above
       // also we can implement UserDAO.setFirstName(int userId, String firstName) that does 1 query instead of 2 (get, update on commit)

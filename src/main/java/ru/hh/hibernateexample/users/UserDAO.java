@@ -19,14 +19,13 @@ public class UserDAO {
     this.sessionFactory = requireNonNull(sessionFactory);
   }
 
-  public void save(final User user) {
+  public User save(final NewUser newUser) {
 
-    // session.save inserts new user with different id even if user already has id
-    // this is confusing, we'd better throw exception, unfortunately at runtime only
-    if (user.id() != null) {
-      throw new IllegalArgumentException("can not save " + user + " with assigned id");
-    }
-    session().save(user); // see also saveOrUpdate and persist
+    // no more runtime exceptions, thanks to inheritance :-)
+
+    final User userWithId = new User(newUser.firstName, newUser.lastName, newUser.creationDate);
+    session().save(userWithId); // see also saveOrUpdate and persist
+    return userWithId;
   }
 
   public Optional<User> get(final int userId) {
